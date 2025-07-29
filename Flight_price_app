@@ -1,0 +1,194 @@
+# %% [markdown]
+# # EDA And Feature Engineering Project-3 Flight Price Prediction
+
+# %% [markdown]
+# # FEATURES
+
+# %% [markdown]
+# # The various features of the cleaned dataset are explained below:
+# 1) Airline: The name of the airline company is stored in the airline column. It is a categorical feature having 6 different airlines.
+# 2) Flight: Flight stores information regarding the plane's flight code. It is a categorical feature.
+# 3) Source City: City from which the flight takes off. It is a categorical feature having 6 unique cities.
+# 4) Departure Time: This is a derived categorical feature obtained created by grouping time periods into bins. It stores information about the departure time and have 6 unique time labels.
+# 5) Stops: A categorical feature with 3 distinct values that stores the number of stops between the source and destination cities.
+# 6) Arrival Time: This is a derived categorical feature created by grouping time intervals into bins. It has six distinct time labels and keeps information about the arrival time.
+# 7) Destination City: City where the flight will land. It is a categorical feature having 6 unique cities.
+# 8) Class: A categorical feature that contains information on seat class; it has two distinct values: Business and Economy.
+# 9) Duration: A continuous feature that displays the overall amount of time it takes to travel between cities in hours.
+# 10) Days Left: This is a derived characteristic that is calculated by subtracting the trip date by the booking date.
+# 11) Price: Target variable stores information of the ticket price.
+
+# %% [markdown]
+# # 1> import all necessary library first
+
+# %%
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+# %matplotlib inline
+
+# %% [markdown]
+# # ii Read the XLSX file
+
+# %%
+df = pd.read_excel('flight_price.xlsx')
+
+# %%
+df
+
+# %%
+df.info()
+
+# %%
+df.describe()
+
+# %%
+df.head(3)
+
+# %%
+df['Date_of_Journey'].str.split('/')
+
+# %%
+df['Date'] = df['Date_of_Journey'].str.split('/').str[0]
+df['Month'] = df['Date_of_Journey'].str.split('/').str[1]
+df['Year'] = df['Date_of_Journey'].str.split('/').str[2]
+
+# %%
+df
+
+# %%
+df['Date']=df['Date'].astype(int)
+df['Month']=df['Month'].astype(int)
+df['Year']=df['Year'].astype(int)
+
+# %%
+df.info()
+
+# %%
+df.drop('Date_of_Journey', axis = 1 , inplace = True)
+
+# %%
+df.head(10)
+
+# %%
+df['Arrival_Time'].str.split(' ').str[0]
+
+# %%
+df['Arrival_hour'] = df['Arrival_Time'].str.split(' ').str[0].str.split(':').str[0]
+df['Arrival_min'] = df['Arrival_Time'].str.split(' ').str[0].str.split(':').str[1]
+df.drop('Arrival_Time', axis = 1, inplace = True)
+
+# %%
+df.info()
+
+# %%
+df['Arrival_hour'] = df['Arrival_hour'].astype(int)
+df['Arrival_min'] = df['Arrival_min'].astype(int)
+
+# %%
+df.info()
+
+# %%
+df.head(3)
+
+# %%
+df['Dept_hour']=df['Dep_Time'].str.split(':').str[0]
+df['Dept_min']=df['Dep_Time'].str.split(':').str[1]
+df['Dept_hour']= df['Dept_hour'].astype(int)
+df['Dept_min']= df['Dept_min'].astype(int)
+df.drop('Dep_Time', axis = 1, inplace = True)
+
+# %%
+df.info()
+
+# %%
+df.drop('Route', axis = 1, inplace = True)
+
+# %%
+df.head(2)
+
+# %%
+df['Duration'].str.split(' ').str[0]
+
+# %%
+# Fill missing value to avoid error
+df['Duration']=df['Duration'].str.strip()
+
+# %%
+df['Duration']=df['Duration'].apply(lambda x : x if 'h' in x else '0h' + x)
+df['Duration']=df['Duration'].apply(lambda x : x if 'm' in x else '0m')
+
+# %%
+# Split into hours and minutes
+df['Dur_hour']=df['Duration'].str.split(' ').str[0]
+df['Dur_min']=df['Duration'].str.split(' ').str[1]
+
+# %%
+df.info()
+
+# %%
+# Step 1: Normalize missing parts
+df['Duration'] = df['Duration'].fillna('0h 0m').str.strip()
+
+df['Duration'] = df['Duration'].apply(lambda x: '0h ' + x if 'h' not in x else x)
+df['Duration'] = df['Duration'].apply(lambda x: x + ' 0m' if 'm' not in x else x)
+
+# Step 2: Extract hours and minutes
+df['Dur_hour'] = df['Duration'].str.extract(r'(\d+)h')[0].fillna(0).astype(int)
+df['Dur_min'] = df['Duration'].str.extract(r'(\d+)m')[0].fillna(0).astype(int)
+
+df.drop('Duration', axis = 1, inplace = True)
+
+# %%
+df.info()
+
+# %%
+df['Total_Stops'].unique()
+
+# %%
+df['Total_Stops'].mode()
+
+# %%
+df['Total_Stops']=df['Total_Stops'].map({'non-stop':0, '1 stop':1 , '2 stops':2, '3 stops':3 ,'4 stops':4, np.nan:1})
+
+# %%
+df['Total_Stops']
+
+# %%
+df['Total_Stops'].isnull().sum()
+
+# %%
+df.head()
+
+# %%
+df['Airline'].unique()
+
+# %%
+df['Source'].unique()
+
+# %%
+df['Destination'].unique()
+
+# %%
+!pip install scikit-learn
+
+# %%
+from sklearn.preprocessing import OneHotEncoder
+
+# %%
+encoder = OneHotEncoder()
+
+# %%
+encoder.fit_transform(df[['Airline','Source','Destination']]).toarray()
+
+# %%
+pd.DataFrame(encoder.fit_transform(df[['Airline','Source','Destination']]).toarray(), columns = encoder.get_feature_names_out())
+
+# %%
+df['Additional_Info'].unique()
+
+# %%
+
+
+

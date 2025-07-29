@@ -59,6 +59,10 @@ if uploaded_file is not None:
     st.subheader("🧹 Cleaned Dataset Preview")
     st.write(df.head())
 
+    # Columns overview for debugging
+    st.subheader("📌 Columns Available in DataFrame:")
+    st.write(df.columns)
+
     # Categorical overview
     st.subheader("📊 Categorical Feature Distribution")
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -68,9 +72,15 @@ if uploaded_file is not None:
 
     # Duration vs Price Boxplot
     st.subheader("📦 Boxplot: Class vs Price")
-    fig2, ax2 = plt.subplots(figsize=(10, 5))
-    sns.boxplot(x='Class', y='Price', data=df, ax=ax2)
-    st.pyplot(fig2)
+    if 'Class' in df.columns and 'Price' in df.columns:
+        if df['Class'].isnull().sum() == 0 and df['Price'].isnull().sum() == 0:
+            fig2, ax2 = plt.subplots(figsize=(10, 5))
+            sns.boxplot(x='Class', y='Price', data=df, ax=ax2)
+            st.pyplot(fig2)
+        else:
+            st.warning("⚠️ 'Class' या 'Price' column में null values हैं। कृपया dataset को जांचें।")
+    else:
+        st.warning("⚠️ Dataset में 'Class' या 'Price' column मौजूद नहीं हैं।")
 
     # One-hot encoding preview
     st.subheader("🧠 OneHotEncoder Preview")
